@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { dbConnection } from 'lib/mongoose';
-import { UserModel } from 'models/User';
+import { dbConnection } from '../../lib/mongoose';
+import { UserModel } from '../../models/User';
 
 dbConnection();
 
