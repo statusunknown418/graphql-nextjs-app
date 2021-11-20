@@ -1,8 +1,38 @@
+import { useQuery } from '@apollo/client';
+import { gql } from 'apollo-server-micro';
+
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
+import { useForm } from 'react-hook-form';
+import { IUserModel } from '../models/User';
+
+type FormData = {
+  name: string;
+  email: string;
+};
 
 const Home: NextPage = () => {
+  const getAllUsersQuery = gql`
+    query {
+      getAllUsers {
+        _id
+        name
+        email
+      }
+    }
+  `;
+  const { data, error, loading } = useQuery(getAllUsersQuery);
+
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
+
+  const onSubmit = handleSubmit((data) => {});
+
   return (
     <div className="grid grid-cols-1 place-items-center min-h-screen">
       <Head>
@@ -15,20 +45,46 @@ const Home: NextPage = () => {
         <h1 className="text-4xl font-black text-center text-blue-700">
           Let&apos;s create an amazing Fullstack NextJS Graphql app
         </h1>
-      </main>
 
-      <footer>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <form
+          onSubmit={onSubmit}
+          className="flex gap-4 items-center justify-center mt-20"
         >
-          Powered by{' '}
-          <span>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+          <label>Name</label>
+          <input
+            className="ring-1 rounded-md p-2"
+            {...register('name')}
+            type="text"
+          />
+          <label>Email</label>
+          <input
+            className="ring-1 rounded-md p-2"
+            {...register('email')}
+            type="email"
+          />
+          <button type="submit">Submit data GRAPHQL</button>
+        </form>
+
+        <button>Get All Users from the Server</button>
+
+        {data && (
+          <div className="mt-20">
+            <h2 className="text-2xl font-black text-center text-blue-700">
+              All Users
+            </h2>
+            <ul>
+              {data.getAllUsers.map((user: IUserModel) => (
+                <li key={user._id}>
+                  <div>
+                    <span>{user.name}</span>
+                    <span>{user.email}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </main>
     </div>
   );
 };
