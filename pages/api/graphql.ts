@@ -16,14 +16,30 @@ const apolloServer = new ApolloServer({
     }
 
     type Query {
-      hello: String
       getAllUsers: [User]
+    }
+    type Mutation {
+      createUser(name: String!, email: String!): User
     }
   `,
   resolvers: {
     Query: {
-      hello: () => 'Trying to connect',
       getAllUsers: async () => await UserModel.find(),
+    },
+    Mutation: {
+      createUser: async (
+        _: unknown,
+        { name, email }: { name: string; email: string }
+      ) => {
+        const newUser = new UserModel({
+          name,
+          email,
+        });
+
+        await newUser.save();
+
+        return newUser;
+      },
     },
   },
 });
