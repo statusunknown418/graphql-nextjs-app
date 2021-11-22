@@ -1,65 +1,74 @@
-import { ApolloServer, gql } from 'apollo-server-micro';
-import Cors from 'micro-cors';
-import { dbConnection } from '../../lib/mongoose';
-import { UserModel } from '../../models/User';
+import { ApolloServer, gql } from 'apollo-server-express';
+import express, { json } from 'express';
+import cors from 'cors';
+import { NextApiRequest, NextApiResponse, PageConfig } from 'next';
+import { Context } from 'apollo-server-core';
 
-dbConnection();
-
-const cors = Cors();
-
-const apolloServer = new ApolloServer({
-  typeDefs: gql`
-    type User {
-      _id: ID!
-      name: String!
-      email: String
-    }
-
-    type Query {
-      getAllUsers: [User]
-    }
-    type Mutation {
-      createUser(name: String!, email: String!): User
-    }
-  `,
-  resolvers: {
-    Query: {
-      getAllUsers: async () => await UserModel.find(),
-    },
-    Mutation: {
-      createUser: async (
-        _: unknown,
-        { name, email }: { name: string; email: string }
-      ) => {
-        const newUser = new UserModel({
-          name,
-          email,
-        });
-
-        await newUser.save();
-
-        return newUser;
-      },
-    },
+const books = [
+  {
+    title: 'The Awakening',
+    author: 'Kate Chopin',
   },
-});
+  {
+    title: 'City of Glass',
+    author: 'Paul Auster',
+  },
+];
 
-// * Storing the start on a constant will solve the error ->
-// ! error - Error: called start() with surprising state started
+// const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+const typeDefs = gql`
+  # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
 
-const start = apolloServer.start();
-
-export default cors(async (req, res) => {
-  if (req.method === 'OPTIONS') {
-    res.end();
-    return false;
+  # This "Book" type defines the queryable fields for every book in our data source.
+  type Book {
+    title: String
+    author: String
   }
-  await start;
 
-  await apolloServer.createHandler({ path: '/api/graphql' })(req, res);
-});
+  # The "Query" type is special: it lists all of the available queries that
+  # clients can execute, along with the return type for each. In this
+  # case, the "books" query returns an array of zero or more Books (defined above).
+  type Query {
+    books: [Book]
+  }
+`;
 
-export const config = {
+const resolvers = {
+  Query: {
+    books: () => books,
+  },
+};
+
+function runMiddleware(req: NextApiRequest, res:NextApiResponse, fn:) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+
+      return resolve(result);
+    });
+  });
+}
+
+export default async function gqlHandler() {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: (ctx: Context) => ctx,
+  });
+  const app = express();
+
+  await server.start();
+  app.use(cors());
+  server.applyMiddleware({ path: '/graphql', app });
+
+  // res.json(server);
+  console.log(`🚀 Server ready at ${server.graphqlPath}`);
+  // };
+}
+
+export const config: PageConfig = {
   api: {
     bodyParser: false,
   },

@@ -1,11 +1,8 @@
-import { useQuery } from '@apollo/client';
-import { gql } from 'apollo-server-micro';
-
+import { gql, useQuery } from '@apollo/client';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
-import { IUserModel } from '../models/User';
 
 type FormData = {
   name: string;
@@ -66,24 +63,6 @@ const Home: NextPage = () => {
         </form>
 
         <button>Get All Users from the Server</button>
-
-        {data && (
-          <div className="mt-20">
-            <h2 className="text-2xl font-black text-center text-blue-700">
-              All Users
-            </h2>
-            <ul>
-              {data.getAllUsers.map((user: IUserModel) => (
-                <li key={user._id}>
-                  <div>
-                    <span>{user.name}</span>
-                    <span>{user.email}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </main>
     </div>
   );
