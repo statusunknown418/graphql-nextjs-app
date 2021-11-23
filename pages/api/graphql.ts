@@ -1,4 +1,4 @@
-import { ApolloServer, gql } from 'apollo-server-express';
+import { ApolloServer, GetMiddlewareOptions, gql } from 'apollo-server-express';
 import express, { json } from 'express';
 import cors from 'cors';
 import { NextApiRequest, NextApiResponse, PageConfig } from 'next';
@@ -29,6 +29,7 @@ const typeDefs = gql`
   # clients can execute, along with the return type for each. In this
   # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
+    hello: String
     books: [Book]
   }
 `;
@@ -36,12 +37,17 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     books: () => books,
+    hello: () => 'Hello World',
   },
 };
 
-function runMiddleware(req: NextApiRequest, res:NextApiResponse, fn:) {
+const runMiddleware = <T = NextApiRequest, G = NextApiResponse>(
+  req: T,
+  res: G,
+  fn: (req: T, res: G, fn: (args: any) => any) => void
+) => {
   return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
+    fn(req, res, (result: any) => {
       if (result instanceof Error) {
         return reject(result);
       }
@@ -49,23 +55,26 @@ function runMiddleware(req: NextApiRequest, res:NextApiResponse, fn:) {
       return resolve(result);
     });
   });
-}
+};
 
-export default async function gqlHandler() {
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    context: (ctx: Context) => ctx,
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: (ctx: Context) => ctx,
+});
+
+const started = server.start();
+
+export default async function gqlHandler(req: any, res: any) {
+  await started;
+
+  const appMiddleware = server.getMiddleware({
+    path: '/api/graphql',
   });
-  const app = express();
 
-  await server.start();
-  app.use(cors());
-  server.applyMiddleware({ path: '/graphql', app });
+  await runMiddleware(req, res, appMiddleware);
 
-  // res.json(server);
   console.log(`🚀 Server ready at ${server.graphqlPath}`);
-  // };
 }
 
 export const config: PageConfig = {
