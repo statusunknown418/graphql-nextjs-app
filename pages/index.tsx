@@ -12,11 +12,7 @@ type FormData = {
 const Home: NextPage = () => {
   const getAllUsersQuery = gql`
     query {
-      getAllUsers {
-        _id
-        name
-        email
-      }
+      hello
     }
   `;
   const { data, error, loading } = useQuery(getAllUsersQuery);
@@ -28,7 +24,9 @@ const Home: NextPage = () => {
     formState: { errors },
   } = useForm<FormData>();
 
-  const onSubmit = handleSubmit((data) => {});
+  const onSubmit = handleSubmit((data) => {
+    console.log(data);
+  });
 
   return (
     <div className="grid grid-cols-1 place-items-center min-h-screen">
@@ -61,7 +59,9 @@ const Home: NextPage = () => {
           />
           <button type="submit">Submit data GRAPHQL</button>
         </form>
-
+        {data && !loading && (
+          <p className="text-3xl font-extrabold">{data.hello}</p>
+        )}
         <button>Get All Users from the Server</button>
       </main>
     </div>
