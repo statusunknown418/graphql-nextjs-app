@@ -70,9 +70,14 @@ export default async function gqlHandler(req: any, res: any) {
 
   const appMiddleware = server.getMiddleware({
     path: '/api/graphql',
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+      credentials: false,
+    },
   });
 
-  await runMiddleware(req, res, appMiddleware);
+  await await runMiddleware(req, res, appMiddleware);
 
   console.log(`🚀 Server ready at ${server.graphqlPath}`);
 }

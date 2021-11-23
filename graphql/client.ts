@@ -7,7 +7,9 @@ import {
 
 const frontendClient: ApolloClient<NormalizedCacheObject> = new ApolloClient({
   cache: new InMemoryCache(),
-  uri: 'https://graphql-nextjs-app.vercel.app/',
+  link: new HttpLink({
+    uri: 'https://graphql-nextjs-app.vercel.app/api/graphql',
+  }),
 });
 
 export default frontendClient;
