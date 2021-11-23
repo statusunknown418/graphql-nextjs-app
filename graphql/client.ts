@@ -5,11 +5,18 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client';
 
-const frontendClient: ApolloClient<NormalizedCacheObject> = new ApolloClient({
+const productionClient: ApolloClient<NormalizedCacheObject> = new ApolloClient({
+  cache: new InMemoryCache(),
+  uri: 'https://graphql-nextjs-app.vercel.app/api/graphql',
+});
+
+const devClient: ApolloClient<NormalizedCacheObject> = new ApolloClient({
   cache: new InMemoryCache(),
   link: new HttpLink({
-    uri: 'https://graphql-nextjs-app.vercel.app/api/graphql',
+    uri: 'http://localhost:3000/api/graphql',
   }),
 });
 
-export default frontendClient;
+export default process.env.NODE_ENV === 'production'
+  ? productionClient
+  : devClient;
